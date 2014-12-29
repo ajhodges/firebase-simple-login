@@ -30,6 +30,9 @@ fb.simplelogin.transports.XHR_.prototype.open = function(url, data, onComplete) 
       callbackInvoked = false,
       key;
 
+  var scope = $('body').scope();
+  var rootScope = scope.$root;
+  
   var callbackHandler = function() {
     if (!callbackInvoked && xhr.readyState === 4) {
       var data, error;
@@ -45,6 +48,13 @@ fb.simplelogin.transports.XHR_.prototype.open = function(url, data, onComplete) 
       } else {
         error = "RESPONSE_PAYLOAD_ERROR";
       }
+      
+      rootScope.$timeout(function(){
+        scope.$apply(function(){
+          rootScope.$broadcast("cfpLoadingBar:done", {url: url, METHOD: method, cached: false});
+        });
+      }); 
+      
       return onComplete && onComplete(error, data);
     }
   };
@@ -68,7 +78,14 @@ fb.simplelogin.transports.XHR_.prototype.open = function(url, data, onComplete) 
     }
   }
 
+  rootScope.$timeout(function(){
+    scope.$apply(function(){
+      rootScope.$broadcast("cfpLoadingBar:start", {url: url, cached: false});
+    });
+  }); 
+  
   xhr.open(method, url, true);
+  
   var headers = {
     'X-Requested-With' : 'XMLHttpRequest',
     'Accept'           : 'application/json;text/plain',
